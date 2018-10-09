@@ -1575,7 +1575,7 @@ std::string expr2ct::convert_struct_member_value(
 }
 
 std::string expr2ct::convert_norep(
-  const exprt &src,
+  const irept &src,
   unsigned &precedence)
 {
   lispexprt lisp;
