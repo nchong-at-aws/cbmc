@@ -62,11 +62,9 @@ void slice_global_inits(goto_modelt &goto_model)
       continue;
 
     for(const auto &i : it->second.body.instructions)
-    {
       i.apply([&symbols](const exprt &expr) {
         find_symbols(expr, symbols, true, false);
       });
-    }
   }
 
   // now remove unnecessary initializations
