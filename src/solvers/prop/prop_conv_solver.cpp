@@ -182,8 +182,8 @@ literalt prop_conv_solvert::convert(const exprt &expr)
   literalt literal = convert_bool(expr);
 
   // insert into cache
-
   result.first->second = literal;
+
   if(freeze_all && !literal.is_constant())
     prop.set_frozen(literal);
 
@@ -303,29 +303,6 @@ literalt prop_conv_solvert::convert_bool(const exprt &expr)
     {
       literalt tmp1 = convert(op[0]), tmp2 = convert(op[1]);
       return equal ? prop.lequal(tmp1, tmp2) : prop.lxor(tmp1, tmp2);
-    }
-  }
-  else if(expr.id() == ID_let)
-  {
-    const let_exprt &let_expr = to_let_expr(expr);
-
-    // first check whether this is all boolean
-    if(
-      let_expr.value().type().id() == ID_bool &&
-      let_expr.where().type().id() == ID_bool)
-    {
-      literalt value = convert(let_expr.value());
-
-      // We expect the identifier of the bound symbols to be unique,
-      // and thus, these can go straight into the symbol map.
-      // This property also allows us to cache any subexpressions.
-      const irep_idt &id = let_expr.symbol().get_identifier();
-      symbols[id] = value;
-      literalt result = convert(let_expr.where());
-
-      // remove again
-      symbols.erase(id);
-      return result;
     }
   }
 
