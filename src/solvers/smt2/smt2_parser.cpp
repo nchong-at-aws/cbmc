@@ -198,14 +198,21 @@ exprt smt2_parsert::let_expression()
   if(next_token() != smt2_tokenizert::CLOSE)
     throw error("expected ')' at end of bindings");
 
-  // save the renaming map
-  renaming_mapt old_renaming_map=renaming_map;
+  id_mapt old_ids;
 
-  // go forwards, add to id_map, renaming if need be
+  // go forwards, add to id_map, but first saving the old id, if any
   for(auto &b : bindings)
   {
-    // get a fresh id for it
-    b.first = add_fresh_id(b.first, b.second);
+    auto id_map_it = id_map.find(b.first); // already there?
+    if(id_map_it == id_map.end())          // not there yet
+    {
+      id_map.insert({b.first, idt(b.second)});
+    }
+    else
+    {
+      old_ids.emplace(*id_map_it);       // save old ID
+      id_map_it->second = idt(b.second); // overwrite
+    }
   }
 
   exprt expr=expression();
@@ -225,11 +232,9 @@ exprt smt2_parsert::let_expression()
     result=let;
   }
 
-  // we keep these in the id_map in order to retain globally
-  // unique identifiers
-
-  // restore renamings
-  renaming_map=old_renaming_map;
+  // restore identifiers
+  for(auto &old_id : old_ids)
+    id_map.at(old_id.first) = std::move(old_id.second);
 
   return result;
 }
