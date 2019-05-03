@@ -64,7 +64,7 @@ optionalt<symbol_exprt>
 remove_returnst::get_or_create_return_value_symbol(const irep_idt &function_id)
 {
   const namespacet ns(symbol_table);
-  const irep_idt symbol_name = return_value_identifier(function_id, ns);
+  const irep_idt symbol_name = return_value_identifier(function_id);
   const symbolt *existing_symbol = symbol_table.lookup(symbol_name);
   if(existing_symbol != nullptr)
     return existing_symbol->symbol_expr();
@@ -296,7 +296,7 @@ bool remove_returnst::restore_returns(
 
   // do we have X#return_value?
   const namespacet ns(symbol_table);
-  auto rv_name = return_value_identifier(function_id, ns);
+  auto rv_name = return_value_identifier(function_id);
 
   symbol_tablet::symbolst::const_iterator rv_it=
     symbol_table.symbols.find(rv_name);
@@ -371,7 +371,7 @@ void remove_returnst::undo_function_calls(
       if(assign.rhs().id()!=ID_symbol)
         continue;
 
-      irep_idt rv_name = return_value_identifier(function_id, ns);
+      irep_idt rv_name = return_value_identifier(function_id);
       const symbol_exprt &rhs=to_symbol_expr(assign.rhs());
       if(rhs.get_identifier()!=rv_name)
         continue;
@@ -414,7 +414,7 @@ void restore_returns(goto_modelt &goto_model)
   rr.restore(goto_model.goto_functions);
 }
 
-irep_idt return_value_identifier(const irep_idt &identifier, const namespacet &)
+irep_idt return_value_identifier(const irep_idt &identifier)
 {
   return id2string(identifier) + RETURN_VALUE_SUFFIX;
 }

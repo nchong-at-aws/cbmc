@@ -104,8 +104,8 @@ void replace_callst::operator()(
       const exprt &rhs = ca.rhs();
 
       INVARIANT(
-        rhs.id() != ID_symbol || to_symbol_expr(rhs).get_identifier() !=
-                                   return_value_identifier(id, ns),
+        rhs.id() != ID_symbol ||
+          to_symbol_expr(rhs).get_identifier() != return_value_identifier(id),
         "returns must not be removed before replacing calls");
     }
 

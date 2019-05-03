@@ -96,6 +96,6 @@ void restore_returns(goto_modelt &);
 
 /// produces the identifier that is used to store the return
 /// value of the function with the given identifier
-irep_idt return_value_identifier(const irep_idt &, const namespacet &);
+irep_idt return_value_identifier(const irep_idt &identifier);
 
 #endif // CPROVER_GOTO_PROGRAMS_REMOVE_RETURNS_H
