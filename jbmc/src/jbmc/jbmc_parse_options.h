@@ -71,6 +71,7 @@ class optionst;
   "(property):(stop-on-fail)(trace)" \
   "(verbosity):" \
   "(nondet-static)" \
+  "(validate-trace)" \
   "(version)" \
   "(symex-coverage-report):" \
   OPT_TIMESTAMP \
