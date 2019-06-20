@@ -93,12 +93,12 @@ TEST_CASE("java trace validation", "[core][java_trace_validation]")
     REQUIRE(valid_rhs_expr_high_level(array_list_plain));
     INFO("constant_exprts are valid lhs expressions")
     REQUIRE(valid_rhs_expr_high_level(valid_constant));
+    INFO("byte_extract_exprts are valid lhs expressions")
+    REQUIRE(valid_rhs_expr_high_level(byte_little_endian));
     INFO("member_exprts are not valid lhs expressions, for example")
     REQUIRE_FALSE(valid_rhs_expr_high_level(valid_member));
     INFO("index_exprts are not are valid lhs expressions, for example")
     REQUIRE_FALSE(valid_rhs_expr_high_level(index_plain));
-    INFO("byte_extract_exprts are valid lhs expressions, for example")
-    REQUIRE_FALSE(valid_rhs_expr_high_level(byte_little_endian));
   }
 
   SECTION("check_trace_assumptions pass with a valid step")

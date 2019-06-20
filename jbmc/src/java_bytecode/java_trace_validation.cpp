@@ -11,6 +11,7 @@ Author: Jeannie Moulton
 #include <algorithm>
 
 #include <goto-programs/goto_trace.h>
+#include <util/byte_operators.h>
 #include <util/expr.h>
 #include <util/expr_util.h>
 #include <util/simplify_expr.h>
@@ -30,7 +31,8 @@ static bool can_contain_symbol_operand(const exprt &expr)
          can_cast_expr<index_exprt>(expr) ||
          can_cast_expr<address_of_exprt>(expr) ||
          can_cast_expr<typecast_exprt>(expr) ||
-         can_cast_expr<symbol_exprt>(expr);
+         can_cast_expr<symbol_exprt>(expr) ||
+         expr.get(ID_identifier) == ID_byte_extract_little_endian;
 }
 
 optionalt<symbol_exprt> get_inner_symbol_expr(exprt expr)
@@ -76,7 +78,8 @@ bool valid_rhs_expr_high_level(const exprt &rhs)
          can_cast_expr<constant_exprt>(rhs) ||
          can_cast_expr<address_of_exprt>(rhs) ||
          can_cast_expr<symbol_exprt>(rhs) ||
-         can_cast_expr<array_list_exprt>(rhs);
+         can_cast_expr<array_list_exprt>(rhs) ||
+         rhs.id() == ID_byte_extract_little_endian;
 }
 
 static void check_lhs_assumptions(const exprt &lhs, const namespacet &ns)
@@ -180,6 +183,14 @@ static void check_rhs_assumptions(const exprt &rhs, const namespacet &ns)
     }
     else if(constant_expr->get_value().empty())
       raise_error("RHS", *constant_expr);
+  }
+  // check byte extract rhs structure
+  else if(rhs.id() == ID_byte_extract_little_endian)
+  {
+    if(!can_cast_expr<constant_exprt>(simplify_expr(rhs.op0(), ns)))
+      raise_error("LHS", rhs);
+    if(!can_cast_expr<constant_exprt>(simplify_expr(rhs.op1(), ns)))
+      raise_error("LHS", rhs);
   }
   else
   {
