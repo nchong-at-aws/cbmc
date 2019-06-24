@@ -21,12 +21,26 @@ bool check_symbol_structure(const exprt &symbol_expr)
   const auto symbol = expr_try_dynamic_cast<symbol_exprt>(symbol_expr);
   return symbol && !symbol->get_identifier().empty();
 }
+
+/// \return true iff the expression is a symbol or is an expression whose first
+/// operand can contain a nested symbol
+static bool can_contain_symbol_operand(const exprt &expr)
+{
+  return can_cast_expr<member_exprt>(expr) ||
+         can_cast_expr<index_exprt>(expr) ||
+         can_cast_expr<address_of_exprt>(expr) ||
+         can_cast_expr<typecast_exprt>(expr) ||
+         can_cast_expr<symbol_exprt>(expr);
 }
 
 optionalt<symbol_exprt> get_inner_symbol_expr(exprt expr)
 {
   while(expr.has_operands())
+  {
     expr = expr.op0();
+    if(!can_contain_symbol_operand(expr))
+      return {};
+  }
   if(!check_symbol_structure(expr))
     return {};
   return *expr_try_dynamic_cast<symbol_exprt>(expr);
