@@ -40,7 +40,9 @@ simplify_exprt::resultt<> simplify_exprt::simplify_boolean(const exprt &expr)
 
     binary_exprt new_expr = implies_expr;
     new_expr.id(ID_or);
-    new_expr.op0() = boolean_negate(new_expr.op0());
+    auto &or_expr = to_or_expr(new_expr);
+    or_expr.op0() = boolean_negate(or_expr.op0());
+    simplify_node(or_expr.op0());
     simplify_node(new_expr);
     return std::move(new_expr);
   }
