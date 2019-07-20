@@ -798,13 +798,17 @@ std::string expr2ct::convert_quantifier(
   if(src.operands().size()!=2)
     return convert_norep(src, precedence);
 
+  // our made-up syntax can only do one symbol
+  if(src.op0().operands().size() != 1)
+    return convert_norep(src, precedence);
+
   unsigned p0, p1;
 
-  std::string op0=convert_with_precedence(src.op0(), p0);
+  std::string op0 = convert_with_precedence(src.op0().op0(), p0);
   std::string op1=convert_with_precedence(src.op1(), p1);
 
   std::string dest=symbol+" { ";
-  dest+=convert(src.op0().type());
+  dest += convert(src.op0().op0().type());
   dest+=" "+op0+"; ";
   dest+=op1;
   dest+=" }";

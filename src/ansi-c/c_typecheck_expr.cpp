@@ -292,12 +292,12 @@ void c_typecheck_baset::typecheck_expr_main(exprt &expr)
   else if(expr.id()==ID_forall ||
           expr.id()==ID_exists)
   {
-    // op0 is a declaration,
-    // op1 the bound expression
+    // op0 is a tuple with one declaration,
+    // op1 is the bound expression
     assert(expr.operands().size()==2);
     expr.type()=bool_typet();
 
-    if(expr.op0().get(ID_statement)!=ID_decl)
+    if(expr.op0().op0().get(ID_statement) != ID_decl)
     {
       error().source_location = expr.source_location();
       error() << "expected declaration as operand of quantifier" << eom;
@@ -311,9 +311,8 @@ void c_typecheck_baset::typecheck_expr_main(exprt &expr)
       throw 0;
     }
 
-    // replace declaration by symbol expression
-    symbol_exprt bound=to_symbol_expr(expr.op0().op0());
-    expr.op0().swap(bound);
+    // replace declarations by symbol expressions
+    expr.op0().op0() = to_symbol_expr(expr.op0().op0().op0());
 
     implicit_typecast_bool(expr.op1());
   }
@@ -739,9 +738,9 @@ void c_typecheck_baset::typecheck_expr_operands(exprt &expr)
   else if(expr.id()==ID_forall || expr.id()==ID_exists)
   {
     assert(expr.operands().size()==2);
+    assert(expr.op0().operands().size() == 1);
 
-    ansi_c_declarationt &declaration=
-      to_ansi_c_declaration(expr.op0());
+    ansi_c_declarationt &declaration = to_ansi_c_declaration(expr.op0().op0());
 
     typecheck_declaration(declaration);
 
@@ -780,7 +779,7 @@ void c_typecheck_baset::typecheck_expr_operands(exprt &expr)
     code_declt decl(symbol.symbol_expr());
     decl.add_source_location()=declaration.source_location();
 
-    expr.op0()=decl;
+    expr.op0().op0() = decl;
 
     typecheck_expr(expr.op1());
   }
