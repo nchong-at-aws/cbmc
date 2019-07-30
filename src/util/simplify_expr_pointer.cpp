@@ -285,8 +285,7 @@ simplify_exprt::simplify_pointer_offset(const unary_exprt &expr)
       auto new_expr = expr;
       new_expr.op() = ptr.op0();
 
-      simplify_node(new_expr); // recursive call
-      return new_expr;
+      return changed(simplify_node(new_expr)); // recursive call
     }
     else if(op_type.id()==ID_signedbv ||
             op_type.id()==ID_unsignedbv)
@@ -297,8 +296,7 @@ simplify_exprt::simplify_pointer_offset(const unary_exprt &expr)
       {
         // (T *)0x1234 -> 0x1234
         exprt tmp = typecast_exprt(ptr.op0(), expr.type());
-        simplify_node(tmp);
-        return tmp;
+        return changed(simplify_node(tmp));
       }
       else
       {
@@ -315,8 +313,7 @@ simplify_exprt::simplify_pointer_offset(const unary_exprt &expr)
           {
             auto new_expr = typecast_exprt::conditional_cast(tmp.op1(), type);
 
-            simplify_node(new_expr);
-            return new_expr;
+            return changed(simplify_node(new_expr));
           }
           else if(tmp.op1().id()==ID_typecast &&
                   tmp.op1().operands().size()==1 &&
@@ -324,8 +321,7 @@ simplify_exprt::simplify_pointer_offset(const unary_exprt &expr)
           {
             auto new_expr = typecast_exprt::conditional_cast(tmp.op0(), type);
 
-            simplify_node(new_expr);
-            return new_expr;
+            return changed(simplify_node(new_expr));
           }
         }
       }
@@ -344,10 +340,7 @@ simplify_exprt::simplify_pointer_offset(const unary_exprt &expr)
       {
         exprt tmp=op;
         if(tmp.type()!=expr.type())
-        {
-          tmp = typecast_exprt(tmp, expr.type());
-          simplify_node(tmp);
-        }
+          tmp = simplify_node(typecast_exprt(tmp, expr.type()));
 
         int_expr.push_back(tmp);
       }
@@ -366,8 +359,7 @@ simplify_exprt::simplify_pointer_offset(const unary_exprt &expr)
       return unchanged(expr);
 
     // this might change the type of the pointer!
-    exprt pointer_offset_expr=pointer_offset(ptr_expr.front());
-    simplify_node(pointer_offset_expr);
+    exprt pointer_offset_expr = simplify_node(pointer_offset(ptr_expr.front()));
 
     exprt sum;
 
@@ -379,20 +371,18 @@ simplify_exprt::simplify_pointer_offset(const unary_exprt &expr)
       sum.operands()=int_expr;
     }
 
-    simplify_node(sum);
+    sum = simplify_node(sum);
 
     exprt size_expr = from_integer(*element_size, expr.type());
 
-    binary_exprt product(sum, ID_mult, size_expr, expr.type());
+    exprt product = binary_exprt(sum, ID_mult, size_expr, expr.type());
 
-    simplify_node(product);
+    product = simplify_node(product);
 
     auto new_expr =
       binary_exprt(pointer_offset_expr, ID_plus, product, expr.type());
 
-    simplify_node(new_expr);
-
-    return new_expr;
+    return changed(simplify_node(new_expr));
   }
   else if(ptr.id()==ID_constant)
   {
@@ -402,10 +392,7 @@ simplify_exprt::simplify_pointer_offset(const unary_exprt &expr)
        c_ptr.value_is_zero_string())
     {
       auto new_expr = from_integer(0, expr.type());
-
-      simplify_node(new_expr);
-
-      return new_expr;
+      return changed(simplify_node(new_expr));
     }
     else
     {
@@ -424,9 +411,7 @@ simplify_exprt::simplify_pointer_offset(const unary_exprt &expr)
 
       auto new_expr = from_integer(number, expr.type());
 
-      simplify_node(new_expr);
-
-      return new_expr;
+      return changed(simplify_node(new_expr));
     }
   }
 
@@ -524,7 +509,7 @@ simplify_exprt::simplify_inequality_pointer_object(const exprt &expr)
     {
       new_inequality_ops.push_back(typecast_exprt::conditional_cast(
         op, new_inequality_ops.front().type()));
-      simplify_node(new_inequality_ops.back());
+      new_inequality_ops.back() = simplify_node(new_inequality_ops.back());
     }
   }
 
@@ -738,7 +723,7 @@ simplify_exprt::simplify_object_size(const unary_exprt &expr)
         if(size.type() != expr_type)
         {
           size = typecast_exprt(size, expr_type);
-          simplify_node(size);
+          size = simplify_node(size);
         }
 
         return size;
@@ -765,7 +750,5 @@ simplify_exprt::simplify_good_pointer(const unary_exprt &expr)
   exprt def = good_pointer_def(expr.op(), ns);
 
   // recursive call
-  simplify_node(def);
-
-  return std::move(def);
+  return changed(simplify_node(def));
 }

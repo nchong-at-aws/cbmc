@@ -180,8 +180,7 @@ simplify_exprt::simplify_index(const index_exprt &expr)
 
       // add offset to index
       mult_exprt offset(from_integer(*sub_size, array.op1().type()), index);
-      plus_exprt final_offset(array.op1(), offset);
-      simplify_node(final_offset);
+      exprt final_offset = simplify_node(plus_exprt(array.op1(), offset));
 
       exprt result_expr(array.id(), expr.type());
       result_expr.add_to_operands(array.op0(), final_offset);

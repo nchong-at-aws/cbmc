@@ -41,8 +41,7 @@ simplify_exprt::resultt<> simplify_exprt::simplify_boolean(const exprt &expr)
     binary_exprt new_expr = implies_expr;
     new_expr.id(ID_or);
     new_expr.op0() = boolean_negate(new_expr.op0());
-    simplify_node(new_expr);
-    return std::move(new_expr);
+    return changed(simplify_node(new_expr));
   }
   else if(expr.id()==ID_xor)
   {
@@ -193,8 +192,7 @@ simplify_exprt::resultt<> simplify_exprt::simplify_not(const not_exprt &expr)
 
     Forall_operands(it, tmp)
     {
-      *it = boolean_negate(*it);
-      simplify_node(*it);
+      *it = simplify_node(boolean_negate(*it));
     }
 
     tmp.id(tmp.id() == ID_and ? ID_or : ID_and);
@@ -212,7 +210,7 @@ simplify_exprt::resultt<> simplify_exprt::simplify_not(const not_exprt &expr)
     auto const &op_as_exists = to_exists_expr(op);
     forall_exprt rewritten_op(
       op_as_exists.symbol(), not_exprt(op_as_exists.where()));
-    simplify_node(rewritten_op.where());
+    rewritten_op.where() = simplify_node(rewritten_op.where());
     return std::move(rewritten_op);
   }
   else if(op.id() == ID_forall) // !(forall: a) <-> exists: not a
@@ -220,8 +218,8 @@ simplify_exprt::resultt<> simplify_exprt::simplify_not(const not_exprt &expr)
     auto const &op_as_forall = to_forall_expr(op);
     exists_exprt rewritten_op(
       op_as_forall.symbol(), not_exprt(op_as_forall.where()));
-    simplify_node(rewritten_op.where());
-    return std::move(rewritten_op);
+    rewritten_op.where() = simplify_node(rewritten_op.where());
+    return changed(rewritten_op);
   }
 
   return unchanged(expr);
