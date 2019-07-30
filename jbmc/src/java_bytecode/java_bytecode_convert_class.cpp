@@ -916,8 +916,9 @@ void add_java_array_types(symbol_tablet &symbol_table)
 
     side_effect_exprt inc(ID_assign, typet(), location);
     inc.operands().resize(2);
-    inc.op0()=index_symexpr;
-    inc.op1()=plus_exprt(index_symexpr, from_integer(1, index_symexpr.type()));
+    to_binary_expr(inc).op0() = index_symexpr;
+    to_binary_expr(inc).op1() =
+      plus_exprt(index_symexpr, from_integer(1, index_symexpr.type()));
 
     dereference_exprt old_cell(
       plus_exprt(old_data, index_symexpr), old_data.type().subtype());
