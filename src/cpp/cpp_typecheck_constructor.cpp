@@ -69,9 +69,8 @@ static void copy_member(
   op1.add_source_location()=source_location;
 
   side_effect_exprt assign(ID_assign, typet(), source_location);
-  assign.copy_to_operands(op0.as_expr());
-  assign.op0().add_source_location() = source_location;
-  assign.copy_to_operands(op1);
+  assign.copy_to_operands(op0.as_expr(), op1);
+  to_binary_expr(assign).op0().add_source_location() = source_location;
 
   code_expressiont code(assign);
   code.add_source_location() = source_location;
@@ -105,10 +104,10 @@ static void copy_array(
   side_effect_exprt assign(ID_assign, typet(), source_location);
 
   assign.copy_to_operands(index_exprt(array.as_expr(), constant));
-  assign.op0().add_source_location() = source_location;
-
   assign.copy_to_operands(index_exprt(member, constant));
-  assign.op1().add_source_location() = source_location;
+
+  to_binary_expr(assign).op0().add_source_location() = source_location;
+  to_binary_expr(assign).op1().add_source_location() = source_location;
 
   code_expressiont code(assign);
   code.add_source_location() = source_location;
@@ -295,7 +294,7 @@ void cpp_typecheckt::default_assignop(
   cpctor.operands().push_back(exprt(ID_cpp_declarator));
   cpctor.add_source_location()=source_location;
 
-  cpp_declaratort &declarator=(cpp_declaratort&) cpctor.op0();
+  cpp_declaratort &declarator = static_cast<cpp_declaratort &>(cpctor.op0());
   declarator.add_source_location()=source_location;
 
   cpp_namet &declarator_name=declarator.name();
