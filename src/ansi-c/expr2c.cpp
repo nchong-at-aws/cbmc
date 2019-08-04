@@ -915,8 +915,8 @@ std::string expr2ct::convert_update(
   std::string op0, op1, op2;
   unsigned p0, p2;
 
-  op0=convert_with_precedence(src.op0(), p0);
-  op2=convert_with_precedence(src.op2(), p2);
+  op0 = convert_with_precedence(to_update_expr(src).op0(), p0);
+  op2 = convert_with_precedence(to_update_expr(src).op2(), p2);
 
   if(precedence>p0)
     dest+='(';
@@ -926,7 +926,7 @@ std::string expr2ct::convert_update(
 
   dest+=", ";
 
-  const exprt &designator=src.op1();
+  const exprt &designator = to_update_expr(src).op1();
 
   forall_operands(it, designator)
     dest+=convert(*it);
@@ -1091,7 +1091,7 @@ std::string expr2ct::convert_unary(
     return convert_norep(src, precedence);
 
   unsigned p;
-  std::string op=convert_with_precedence(src.op0(), p);
+  std::string op = convert_with_precedence(to_unary_expr(src).op(), p);
 
   std::string dest=symbol;
   if(precedence>=p ||
@@ -1150,7 +1150,8 @@ std::string expr2ct::convert_statement_expression(
      to_code(src.op0()).get_statement()!=ID_block)
     return convert_norep(src, precedence);
 
-  return "("+convert_code(to_code_block(to_code(src.op0())), 0)+")";
+  return "(" +
+         convert_code(to_code_block(to_code(to_unary_expr(src).op())), 0) + ")";
 }
 
 std::string expr2ct::convert_prob_coin(
@@ -1158,7 +1159,7 @@ std::string expr2ct::convert_prob_coin(
   unsigned &precedence)
 {
   if(src.operands().size()==1)
-    return "COIN("+convert(src.op0())+")";
+    return "COIN(" + convert(to_unary_expr(src).op()) + ")";
   else
     return convert_norep(src, precedence);
 }
@@ -1173,7 +1174,8 @@ std::string expr2ct::convert_prob_uniform(
   unsigned &precedence)
 {
   if(src.operands().size()==1)
-    return "PROB_UNIFORM("+convert(src.type())+","+convert(src.op0())+")";
+    return "PROB_UNIFORM(" + convert(src.type()) + "," +
+           convert(to_unary_expr(src).op()) + ")";
   else
     return convert_norep(src, precedence);
 }
@@ -1207,12 +1209,12 @@ std::string expr2ct::convert_comma(
     return convert_norep(src, precedence);
 
   unsigned p0;
-  std::string op0=convert_with_precedence(src.op0(), p0);
+  std::string op0 = convert_with_precedence(to_binary_expr(src).op0(), p0);
   if(*op0.rbegin()==';')
     op0.resize(op0.size()-1);
 
   unsigned p1;
-  std::string op1=convert_with_precedence(src.op1(), p1);
+  std::string op1 = convert_with_precedence(to_binary_expr(src).op1(), p1);
   if(*op1.rbegin()==';')
     op1.resize(op1.size()-1);
 
@@ -1227,9 +1229,9 @@ std::string expr2ct::convert_complex(
   const exprt &src,
   unsigned precedence)
 {
-  if(src.operands().size()==2 &&
-     src.op0().is_zero() &&
-     src.op1().id()==ID_constant)
+  if(
+    src.operands().size() == 2 && to_binary_expr(src).op0().is_zero() &&
+    to_binary_expr(src).op1().id() == ID_constant)
   {
     // This is believed to be gcc only; check if this is sensible
     // in MSC mode.
@@ -1280,7 +1282,7 @@ std::string expr2ct::convert_array_of(
   if(src.operands().size()!=1)
     return convert_norep(src, precedence);
 
-  return "ARRAY_OF("+convert(src.op0())+')';
+  return "ARRAY_OF(" + convert(to_unary_expr(src).op()) + ')';
 }
 
 std::string expr2ct::convert_byte_extract(
@@ -1291,10 +1293,10 @@ std::string expr2ct::convert_byte_extract(
     return convert_norep(src, precedence);
 
   unsigned p0;
-  std::string op0=convert_with_precedence(src.op0(), p0);
+  std::string op0 = convert_with_precedence(to_binary_expr(src).op0(), p0);
 
   unsigned p1;
-  std::string op1=convert_with_precedence(src.op1(), p1);
+  std::string op1 = convert_with_precedence(to_binary_expr(src).op1(), p1);
 
   std::string dest=src.id_string();
   dest+='(';
@@ -1347,7 +1349,7 @@ std::string expr2ct::convert_unary_post(
     return convert_norep(src, precedence);
 
   unsigned p;
-  std::string op=convert_with_precedence(src.op0(), p);
+  std::string op = convert_with_precedence(to_unary_expr(src).op(), p);
 
   std::string dest;
   if(precedence>p)
@@ -1395,12 +1397,12 @@ std::string expr2ct::convert_pointer_arithmetic(
   unsigned p;
   std::string op;
 
-  op=convert(src.op0().type());
+  op = convert(to_binary_expr(src).op0().type());
   dest+=op;
 
   dest+=", ";
 
-  op=convert_with_precedence(src.op0(), p);
+  op = convert_with_precedence(to_binary_expr(src).op0(), p);
   if(precedence>p)
     dest+='(';
   dest+=op;
@@ -1409,7 +1411,7 @@ std::string expr2ct::convert_pointer_arithmetic(
 
   dest+=", ";
 
-  op=convert_with_precedence(src.op1(), p);
+  op = convert_with_precedence(to_binary_expr(src).op1(), p);
   if(precedence>p)
     dest+='(';
   dest+=op;
@@ -1475,7 +1477,7 @@ std::string expr2ct::convert_index_designator(const exprt &src)
   if(src.operands().size()!=1)
     return convert_norep(src, precedence);
 
-  return "["+convert(src.op0())+"]";
+  return "[" + convert(to_unary_expr(src).op()) + "]";
 }
 
 std::string expr2ct::convert_member(
